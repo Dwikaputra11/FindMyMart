@@ -31,9 +31,12 @@ dependencies:
   flutter:
     sdk: flutter
   flutter_map: ^3.0.0
+  geocoding: ^2.0.5
   geolocator: ^9.0.2
   latlng: ^0.2.0
   latlong2: ^0.8.1
+  location: ^4.4.0
+  osm_nominatim: ^2.0.1
 
 dev_dependencies:
   flutter_lints: ^2.0.0
