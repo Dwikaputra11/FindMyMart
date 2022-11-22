@@ -6,6 +6,8 @@ import 'package:osm_nominatim/osm_nominatim.dart';
 import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
+import '../widgets/map_bottom_sheet.dart';
+
 const _mainColor = Color(0xFF1A4971);
 const _secondaryColor = Color(0xFFA9D4F5);
 
@@ -125,12 +127,18 @@ class _SearchLocationState extends State<SearchLocation> {
                                           style: ElevatedButton.styleFrom(
                                               backgroundColor: Colors.white),
                                           onPressed: () {
-                                            Navigator.push(
-                                              context,
-                                              MaterialPageRoute(
-                                                builder: (context) =>
-                                                    const MainPage(),
+                                            showModalBottomSheet(
+                                              shape:
+                                                  const RoundedRectangleBorder(
+                                                borderRadius:
+                                                    BorderRadius.vertical(
+                                                  top: Radius.circular(20),
+                                                ),
                                               ),
+                                              context: context,
+                                              builder: (ctx) => MapBottomSheet(
+                                                  place: location
+                                                      .mapPlaces[index]),
                                             );
                                           },
                                           child: const Text(
