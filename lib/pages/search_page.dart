@@ -1,3 +1,4 @@
+import 'package:findmymarket/pages/main_page.dart';
 import 'package:flutter/material.dart';
 import 'package:osm_nominatim/osm_nominatim.dart';
 
@@ -67,12 +68,52 @@ class _SearchLocationState extends State<SearchLocation> {
           Flexible(
             child: ListView.builder(
               itemCount: searchPlaces?.length ?? 0,
-              itemBuilder: (context, index) =>
-                  Text(searchPlaces?[index].displayName ?? ""),
+              itemBuilder: (context, index) => Container(
+                alignment: Alignment.center,
+                margin: const EdgeInsets.all(5),
+                decoration: BoxDecoration(
+                  borderRadius: BorderRadius.circular(5),
+                  color: _mainColor,
+                  boxShadow: const [
+                    BoxShadow(
+                        color: Colors.white,
+                        blurRadius: 3,
+                        spreadRadius: 1,
+                        offset: Offset(7, 5)),
+                  ],
+                ),
+                child: ListTile(
+                  enabled: true,
+                  leading: ElevatedButton(
+                    style:
+                        ElevatedButton.styleFrom(backgroundColor: Colors.white),
+                    onPressed: () {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) => const MainPage(),
+                        ),
+                      );
+                    },
+                    child: const Text(
+                      'Lihat',
+                      style: TextStyle(
+                        color: _mainColor,
+                        fontSize: 13,
+                        fontWeight: FontWeight.w700,
+                        decoration: TextDecoration.underline,
+                      ),
+                    ),
+                  ),
+                  title: Text(
+                    searchPlaces?[index].displayName ?? "",
+                    style: const TextStyle(color: Colors.white, fontSize: 13),
+                  ),
+                ),
+              ),
+              physics: const BouncingScrollPhysics(),
             ),
           ),
-          Text(_cityController.text),
-          Text('text value : $selectedValue'),
         ],
       ),
     );
@@ -112,8 +153,6 @@ class _SearchLocationState extends State<SearchLocation> {
   }
 
   Future<void> searchLocation(String st, String city) async {
-    print(st);
-    print(city);
     await Nominatim.searchByName(
       street: st,
       city: city,
