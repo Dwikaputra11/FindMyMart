@@ -1,8 +1,10 @@
 import 'package:findmymarket/pages/main_page.dart';
+import 'package:findmymarket/provider/map_provider.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:osm_nominatim/osm_nominatim.dart';
-
-TextEditingController _cityController = TextEditingController();
+import 'package:provider/provider.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 const _mainColor = Color(0xFF1A4971);
 const _secondaryColor = Color(0xFFA9D4F5);
@@ -15,8 +17,27 @@ class SearchLocation extends StatefulWidget {
 }
 
 class _SearchLocationState extends State<SearchLocation> {
+  final _cityController = TextEditingController();
   List<Place>? searchPlaces;
   String selectedValue = "Indomaret";
+
+  @override
+  void dispose() {
+    _cityController.dispose();
+    super.dispose();
+  }
+
+  void _savePlace() {
+    if (selectedValue.isEmpty && _cityController.text.isEmpty) {
+      return;
+    }
+    if (kDebugMode) {
+      print('value $selectedValue');
+    }
+    Provider.of<MapProvider>(context, listen: false)
+        .addLocation(selectedValue, _cityController.text);
+  }
+
   // String cityText = _cityController.text;
   @override
   Widget build(BuildContext context) {
@@ -36,6 +57,7 @@ class _SearchLocationState extends State<SearchLocation> {
               onChanged: (String? newValue) {
                 setState(() {
                   selectedValue = newValue!;
+                  _cityController.text.isNotEmpty ? _savePlace() : null;
                 });
               },
               decoration: InputDecoration(
@@ -61,59 +83,89 @@ class _SearchLocationState extends State<SearchLocation> {
               backgroundColor: const Color(0xFF1A4971),
             ),
             onPressed: (() {
-              searchLocation(selectedValue, _cityController.text);
+              _savePlace();
+              setState(() {});
             }),
             child: const Text("Search"),
           ),
-          Flexible(
-            child: ListView.builder(
-              itemCount: searchPlaces?.length ?? 0,
-              itemBuilder: (context, index) => Container(
-                alignment: Alignment.center,
-                margin: const EdgeInsets.all(5),
-                decoration: BoxDecoration(
-                  borderRadius: BorderRadius.circular(5),
-                  color: _mainColor,
-                  boxShadow: const [
-                    BoxShadow(
-                        color: Colors.white,
-                        blurRadius: 3,
-                        spreadRadius: 1,
-                        offset: Offset(7, 5)),
-                  ],
-                ),
-                child: ListTile(
-                  enabled: true,
-                  leading: ElevatedButton(
-                    style:
-                        ElevatedButton.styleFrom(backgroundColor: Colors.white),
-                    onPressed: () {
-                      Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                          builder: (context) => const MainPage(),
-                        ),
-                      );
-                    },
-                    child: const Text(
-                      'Lihat',
-                      style: TextStyle(
-                        color: _mainColor,
-                        fontSize: 13,
-                        fontWeight: FontWeight.w700,
-                        decoration: TextDecoration.underline,
-                      ),
-                    ),
+          _cityController.text.isNotEmpty
+              ? Flexible(
+                  child: FutureBuilder(
+                    future: Provider.of<MapProvider>(context, listen: false)
+                        .searchLocation(),
+                    builder: (context, snapshot) => snapshot.connectionState ==
+                            ConnectionState.waiting
+                        ? const Center(
+                            child: CircularProgressIndicator(),
+                          )
+                        : Consumer<MapProvider>(
+                            builder: (context, location, child) => location
+                                        .mapItem.place ==
+                                    null
+                                ? child!
+                                : ListView.builder(
+                                    itemCount: location.mapPlaces.length,
+                                    itemBuilder: (context, index) => Container(
+                                      alignment: Alignment.center,
+                                      margin: const EdgeInsets.all(5),
+                                      decoration: BoxDecoration(
+                                        borderRadius: BorderRadius.circular(5),
+                                        color: _mainColor,
+                                        boxShadow: const [
+                                          BoxShadow(
+                                              color: Colors.white,
+                                              blurRadius: 3,
+                                              spreadRadius: 1,
+                                              offset: Offset(7, 5)),
+                                        ],
+                                      ),
+                                      child: ListTile(
+                                        enabled: true,
+                                        leading: ElevatedButton(
+                                          style: ElevatedButton.styleFrom(
+                                              backgroundColor: Colors.white),
+                                          onPressed: () {
+                                            Navigator.push(
+                                              context,
+                                              MaterialPageRoute(
+                                                builder: (context) =>
+                                                    const MainPage(),
+                                              ),
+                                            );
+                                          },
+                                          child: const Text(
+                                            'Lihat',
+                                            style: TextStyle(
+                                              color: _mainColor,
+                                              fontSize: 13,
+                                              fontWeight: FontWeight.w700,
+                                              decoration:
+                                                  TextDecoration.underline,
+                                            ),
+                                          ),
+                                        ),
+                                        title: Text(
+                                          location.mapPlaces[index].displayName,
+                                          style: const TextStyle(
+                                              color: Colors.white,
+                                              fontSize: 13),
+                                        ),
+                                      ),
+                                    ),
+                                    physics: const BouncingScrollPhysics(),
+                                  ),
+                            child: const Center(
+                              child:
+                                  Text('Got no places yet, start search some'),
+                            ),
+                          ),
                   ),
-                  title: Text(
-                    searchPlaces?[index].displayName ?? "",
-                    style: const TextStyle(color: Colors.white, fontSize: 13),
+                )
+              : const Flexible(
+                  child: Center(
+                    child: Text('Got no places yet, start search some'),
                   ),
                 ),
-              ),
-              physics: const BouncingScrollPhysics(),
-            ),
-          ),
           // Text(_cityController.text),
           // Text('text value : $selectedValue'),
         ],
@@ -126,7 +178,7 @@ class _SearchLocationState extends State<SearchLocation> {
       alignment: Alignment.center,
       height: 60,
       width: 300,
-      child: TextField(
+      child: TextFormField(
         enabled: true,
         controller: _cityController,
         style: const TextStyle(

@@ -1,10 +1,12 @@
 import 'dart:async';
+import 'package:findmymarket/provider/map_provider.dart';
 import 'package:findmymarket/widgets/map_bottom_sheet.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_map/flutter_map.dart';
 import 'package:latlong2/latlong.dart';
 import 'package:location/location.dart';
 import 'package:osm_nominatim/osm_nominatim.dart';
+import 'package:provider/provider.dart';
 
 class MapPage extends StatefulWidget {
   const MapPage({super.key});
@@ -27,7 +29,7 @@ class _MapPageState extends State<MapPage> {
   void initState() {
     _mapController = MapController();
     mapEventSubscription = _mapController.mapEventStream.listen(onMapEvent);
-    searchLocation();
+    // searchLocation();
     super.initState();
   }
 
@@ -65,7 +67,7 @@ class _MapPageState extends State<MapPage> {
 
   @override
   void didChangeDependencies() {
-    searchLocation();
+    // searchLocation();
     searchPlaces?.forEach((element) {
       bounds.extend(LatLng(element.lat, element.lon));
     });
@@ -74,34 +76,51 @@ class _MapPageState extends State<MapPage> {
 
   @override
   Widget build(BuildContext context) {
-    // _mapController.fitBounds(
-    //   bounds,
-    //   options: const FitBoundsOptions(
-    //     padding: EdgeInsets.only(left: 15, right: 15),
-    //   ),
-    // );
+    var map = Provider.of<MapProvider>(context, listen: false);
+    map.addMarker(context, _mapController);
     return Scaffold(
       body: SafeArea(
-        child: Flexible(
-          child: FlutterMap(
-            mapController: _mapController,
-            options: MapOptions(
-              center: LatLng(-7.8011945, 110.364917),
-              zoom: 12,
-              maxZoom: 100,
-              minZoom: 3,
-            ),
-            children: [
-              TileLayer(
-                urlTemplate: 'https://tile.openstreetmap.org/{z}/{x}/{y}.png',
-                userAgentPackageName: 'com.example.findmymarket',
-                subdomains: const ['a', 'b', 'c'],
-              ),
-              MarkerLayer(
-                markers: markers,
-              ),
-            ],
-          ),
+        child: FutureBuilder(
+          future:
+              Provider.of<MapProvider>(context, listen: false).searchLocation(),
+          builder: (context, snapshot) => snapshot.connectionState ==
+                  ConnectionState.waiting
+              ? const Center(
+                  child: CircularProgressIndicator(),
+                )
+              : Consumer<MapProvider>(
+                  builder: (context, places, child) => places.mapPlaces.isEmpty
+                      ? child!
+                      : Flexible(
+                          child: FlutterMap(
+                            mapController: _mapController,
+                            options: MapOptions(
+                              center: map.mapItem.cityCoordinate ??
+                                  LatLng(-7.8011945, 110.364917),
+                              zoom: 12,
+                              maxZoom: 100,
+                              minZoom: 3,
+                            ),
+                            children: [
+                              TileLayer(
+                                urlTemplate:
+                                    'https://tile.openstreetmap.org/{z}/{x}/{y}.png',
+                                userAgentPackageName:
+                                    'com.example.findmymarket',
+                                subdomains: const ['a', 'b', 'c'],
+                              ),
+                              MarkerLayer(
+                                markers: map.markers,
+                              )
+                            ],
+                          ),
+                        ),
+                  child: const Flexible(
+                    child: Center(
+                      child: Text('Got no places yet, start search some'),
+                    ),
+                  ),
+                ),
         ),
       ),
       // bottomSheet: _tapPlace != null ? MapBottomSheet(place: _tapPlace!) : null,
@@ -112,53 +131,88 @@ class _MapPageState extends State<MapPage> {
     );
   }
 
-  Future<void> searchLocation() async {
-    await Nominatim.searchByName(
-      street: 'indomaret',
-      city: 'yogyakarta',
-      limit: 30,
-      addressDetails: true,
-      extraTags: true,
-      nameDetails: true,
-    ).then(
-      (value) => {
-        setState(
-          () => {
-            searchPlaces = value,
-            markers.addAll(
-              value.map(
-                (e) => Marker(
-                  width: 80,
-                  height: 80,
-                  point: LatLng(e.lat, e.lon),
-                  builder: (ctx) => Container(
-                    key: Key(e.placeId.toString()),
-                    child: IconButton(
-                      padding: const EdgeInsets.all(0),
-                      icon: const Icon(
-                        Icons.location_on,
-                        color: Colors.red,
-                      ),
-                      onPressed: () => {
-                        _mapController.move(LatLng(e.lat, e.lon), 12),
-                        showModalBottomSheet(
-                          shape: const RoundedRectangleBorder(
-                            borderRadius: BorderRadius.vertical(
-                              top: Radius.circular(20),
-                            ),
-                          ),
-                          context: context,
-                          builder: (ctx) => MapBottomSheet(place: e),
-                        ),
-                      },
+  void addMarker() {
+    final places = Provider.of<MapProvider>(context).mapPlaces;
+    markers.addAll(
+      places.map(
+        (e) => Marker(
+          width: 80,
+          height: 80,
+          point: LatLng(e.lat, e.lon),
+          builder: (ctx) => Container(
+            key: Key(e.placeId.toString()),
+            child: IconButton(
+              padding: const EdgeInsets.all(0),
+              icon: const Icon(
+                Icons.location_on,
+                color: Colors.red,
+              ),
+              onPressed: () => {
+                _mapController.move(LatLng(e.lat, e.lon), 12),
+                showModalBottomSheet(
+                  shape: const RoundedRectangleBorder(
+                    borderRadius: BorderRadius.vertical(
+                      top: Radius.circular(20),
                     ),
                   ),
+                  context: context,
+                  builder: (ctx) => MapBottomSheet(place: e),
                 ),
-              ),
+              },
             ),
-          },
+          ),
         ),
-      },
+      ),
     );
   }
+
+  // Future<void> searchLocation() async {
+  //   await Nominatim.searchByName(
+  //     street: 'indomaret',
+  //     city: 'yogyakarta',
+  //     limit: 30,
+  //     addressDetails: true,
+  //     extraTags: true,
+  //     nameDetails: true,
+  //   ).then(
+  //     (value) => {
+  //       setState(
+  //         () => {
+  //           searchPlaces = value,
+  //           markers.addAll(
+  //             value.map(
+  //               (e) => Marker(
+  //                 width: 80,
+  //                 height: 80,
+  //                 point: LatLng(e.lat, e.lon),
+  //                 builder: (ctx) => Container(
+  //                   key: Key(e.placeId.toString()),
+  //                   child: IconButton(
+  //                     padding: const EdgeInsets.all(0),
+  //                     icon: const Icon(
+  //                       Icons.location_on,
+  //                       color: Colors.red,
+  //                     ),
+  //                     onPressed: () => {
+  //                       _mapController.move(LatLng(e.lat, e.lon), 12),
+  //                       showModalBottomSheet(
+  //                         shape: const RoundedRectangleBorder(
+  //                           borderRadius: BorderRadius.vertical(
+  //                             top: Radius.circular(20),
+  //                           ),
+  //                         ),
+  //                         context: context,
+  //                         builder: (ctx) => MapBottomSheet(place: e),
+  //                       ),
+  //                     },
+  //                   ),
+  //                 ),
+  //               ),
+  //             ),
+  //           ),
+  //         },
+  //       ),
+  //     },
+  //   );
+  // }
 }
