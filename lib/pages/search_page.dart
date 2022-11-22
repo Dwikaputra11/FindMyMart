@@ -71,8 +71,8 @@ class _SearchLocationState extends State<SearchLocation> {
                   Text(searchPlaces?[index].displayName ?? ""),
             ),
           ),
-          Text(_cityController.text),
-          Text('text value : $selectedValue'),
+          // Text(_cityController.text),
+          // Text('text value : $selectedValue'),
         ],
       ),
     );

@@ -1,4 +1,6 @@
 import 'package:findmymarket/pages/main_page.dart';
+import 'package:findmymarket/pages/map_page.dart';
+import 'package:findmymarket/reference/mark_multiple_location.dart';
 import 'package:flutter/material.dart';
 
 void main() {
