@@ -23,7 +23,7 @@ class _MapPageState extends State<MapPage> {
   IconData icon = Icons.gps_not_fixed;
   int _eventKey = 0;
   final bounds = LatLngBounds();
-  Place? _tapPlace;
+  // Place? _tapPlace;
 
   @override
   void initState() {

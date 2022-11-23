@@ -20,7 +20,7 @@ class _HomeScreenState extends State<HomeScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final size = MediaQuery.of(context).size;
+    // final size = MediaQuery.of(context).size;
     return Scaffold(
       appBar: AppBar(title: const Text("Marker Map")),
       body: SafeArea(

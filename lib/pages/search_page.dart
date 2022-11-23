@@ -1,10 +1,10 @@
-import 'package:findmymarket/pages/main_page.dart';
+// import 'package:findmymarket/pages/main_page.dart';
 import 'package:findmymarket/provider/map_provider.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:osm_nominatim/osm_nominatim.dart';
 import 'package:provider/provider.dart';
-import 'package:shared_preferences/shared_preferences.dart';
+// import 'package:shared_preferences/shared_preferences.dart';
 
 import '../widgets/map_bottom_sheet.dart';
 
