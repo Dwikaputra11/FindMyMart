@@ -117,13 +117,12 @@ class _MapPageState extends State<MapPage> {
                         ),
                   child: const Flexible(
                     child: Center(
-                      child: Text('Got no places yet, start search some'),
+                      child: Text('Got no places yet, start search some!'),
                     ),
                   ),
                 ),
         ),
       ),
-      // bottomSheet: _tapPlace != null ? MapBottomSheet(place: _tapPlace!) : null,
       floatingActionButton: FloatingActionButton(
         onPressed: _moveToCurrent,
         child: Icon(icon),

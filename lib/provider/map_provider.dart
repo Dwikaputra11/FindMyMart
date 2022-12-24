@@ -59,12 +59,29 @@ class MapProvider with ChangeNotifier {
       extraTags: true,
       nameDetails: true,
     );
-    setMapItem = MapItem(
-      marketName: market,
-      cityName: city,
-      place: places,
-      cityCoordinate: LatLng(places.first.lat, places.first.lon),
-    );
+    print('places : $places');
+    if (places.isNotEmpty) {
+      setMapItem = MapItem(
+        marketName: market,
+        cityName: city,
+        place: places,
+        cityCoordinate: LatLng(places.first.lat, places.first.lon),
+      );
+    } else {
+      setMapItem = MapItem(
+        marketName: '',
+        cityName: '',
+        place: await Nominatim.searchByName(
+          street: '',
+          city: '',
+          limit: 30,
+          addressDetails: true,
+          extraTags: true,
+          nameDetails: true,
+        ),
+        cityCoordinate: LatLng(-7.797068, 110.370529),
+      );
+    }
     notifyListeners();
   }
 

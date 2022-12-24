@@ -30,7 +30,7 @@ class MainPageState extends State<MainPage> {
   PreferredSizeWidget _appBar() {
     return AppBar(
       backgroundColor: _mainColor,
-      title: const Text('Find My App'),
+      title: const Text('Find My Mart'),
       titleTextStyle:
           const TextStyle(fontWeight: FontWeight.bold, fontSize: 17),
       centerTitle: true,
